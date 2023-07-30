@@ -51,26 +51,44 @@ def crawl(directory):
 def transition_model(corpus, page, damping_factor):
 
     #Create list of connected pages
-    connected = corpus[page]
+    connected = {}
 
-    #Add values(probability) to connected pages
-    probability = damping_factor/len(connected)
-    for key in connected:
-        connected[key] = probability
-
+    #Return probability to all pages if page has no outgoing links
+    if len(corpus[page]) == 0:
+        probability = 1/len(corpus)
+        for page in corpus:
+            connected[page] = probability
+        return connected
+        
     #Add probability to all pages
     probability = (1-damping_factor)/len(corpus)
     for key in corpus:
-        if key not in connected:
-            connected[key] = probability 
-        else:
-            connected[key] += probability
-    
+        connected[key] = probability 
+
+    #Add values(probability) to connected pages
+    probability = damping_factor/len(corpus[page])
+    for key in corpus[page]:
+        connected[key] += probability
+
     return connected
     
 
 
 def sample_pagerank(corpus, damping_factor, n):
+    pageRankDict = {}
+    for key in corpus:
+        pageRankDict[key] = 0
+    page = random.choice(list(corpus.keys()))
+    pageRankDict[page] += 1
+    for _ in range(n-1):
+        nextPageDict = transition_model(corpus,page,damping_factor)
+        page = random.choices(list(nextPageDict.keys()),list(nextPageDict.values()))[0]
+        pageRankDict[page] += 1
+    for key in pageRankDict:
+        pageRankDict[key] /= n
+    return pageRankDict
+
+    
     """
     Return PageRank values for each page by sampling `n` pages
     according to transition model, starting with a page at random.
@@ -79,19 +97,38 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
 
 
 def iterate_pagerank(corpus, damping_factor):
-    """
-    Return PageRank values for each page by iteratively updating
-    PageRank values until convergence.
+    
+    pageRankDict = {}
+    pageLinks = {}
 
-    Return a dictionary where keys are page names, and values are
-    their estimated PageRank value (a value between 0 and 1). All
-    PageRank values should sum to 1.
-    """
-    raise NotImplementedError
+    N = len(corpus)
+    value = 1/N
+
+    for key in corpus:
+        pageRankDict[key] = value
+        pageLinks[key] = set()
+        if len(corpus[key]) == 0:
+            corpus[key]= set(corpus.keys())
+    for key in corpus:
+        for page in corpus[key]:
+            pageLinks[page].add(key)
+            
+    change = 1
+    while change > 0.001:
+        change = 0
+        oldPageRankDict = pageRankDict.copy()
+        for key in pageRankDict:
+            sumLinks = 0
+            for link in pageLinks[key]:
+                sumLinks += oldPageRankDict[link]/(len(corpus[link]))
+            pageRankDict[key] = (1-damping_factor)/N + damping_factor*sumLinks
+            change = max(change,abs(pageRankDict[key] - oldPageRankDict[key]))
+    print("Sum: " + str(sum(pageRankDict.values())))
+    return pageRankDict
+
 
 
 if __name__ == "__main__":
