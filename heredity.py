@@ -142,127 +142,29 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     probability = 1
 
     for person in people:
+        personGene = 1 if person in one_gene else 2 if person in two_genes else 0
 
-        #Person has one copy of one of the gene
-        if person in one_gene:
+        #Parents of person are unknown
+        if not people[person]['mother']:
+            probability *= PROBS['gene'][personGene]
 
-            #Parents of person are known
-            if people[person]["mother"]:
-                mother, father = people[person]["mother"], people[person]["father"]
-                if mother in one_gene or father in one_gene:
-                    #One, one case
-                    if father in one_gene and mother in one_gene:
-                        probability *= (0.5*0.5 + 0.5*0.5)
-                    else:
-                        if mother in one_gene:
-                            secondParent = father
-                        else:
-                            secondParent = mother
-                        #One, two case
-                        if secondParent in two_genes:
-                            probability *= (0.5*0.01 + 0.5*0.99)
-                        #One, zero case
-                        else:
-                            probability *= (0.5*0.99 + 0.5*0.01)
-                elif mother in two_genes or father in two_genes:
-                    #Two, two case
-                    if mother in two_genes and father in two_genes:
-                        probability *= (0.01*0.99 + 0.99*0.01)
-                    #Two, zero case
-                    else:
-                        probability *= (0.99*0.99 + 0.01*0.01)
-                #Zero, zero case
-                else:
-                    probability *= (0.99*0.01+0.01*0.99)
-            #Parents unknown
-            else:
-                probability *= PROBS["gene"][1]
-            
-            #Trait probability
-            if person in have_trait:
-                probability *= PROBS["trait"][1][True]
-            else:
-                probability *= PROBS["trait"][1][False]
-
-        #Person has two copy of one of the gene
-        elif person in two_genes:
-            #Parents of person are known
-            if people[person]["mother"]:
-                mother, father = people[person]["mother"], people[person]["father"]
-                if mother in one_gene or father in one_gene:
-                    #One, one case
-                    if father in one_gene and mother in one_gene:
-                        probability *= (0.5*0.5)
-                    else:
-                        if mother in one_gene:
-                            secondParent = father
-                        else:
-                            secondParent = mother
-                        #One, two case
-                        if secondParent in two_genes:
-                            probability *= (0.5*0.99)
-                        #One, zero case
-                        else:
-                            probability *= (0.5*0.01)
-                elif mother in two_genes or father in two_genes:
-                    #Two, two case
-                    if mother in two_genes and father in two_genes:
-                        probability *= (0.99*0.99)
-                    #Two, zero case
-                    else:
-                        probability *= (0.99*0.01)
-                #Zero, zero case
-                else:
-                    probability *= (0.01*0.01)
-            #Parents unknown
-            else:
-                probability *= PROBS["gene"][2]
-
-            #Trait probability
-            if person in have_trait:
-                probability *= PROBS["trait"][2][True]
-            else:
-                probability *= PROBS["trait"][2][False]
-
-        #Person has zeo copy of one of the gene
+        #Parents of person are known
         else:
-            #Parents of person are known
-            if people[person]["mother"]:
-                mother, father = people[person]["mother"], people[person]["father"]
-                if mother in one_gene or father in one_gene:
-                    #One, one case
-                    if father in one_gene and mother in one_gene:
-                        probability *= (0.5*0.5)
-                    else:
-                        if mother in one_gene:
-                            secondParent = father
-                        else:
-                            secondParent = mother
-                        #One, two case
-                        if secondParent in two_genes:
-                            probability *= (0.5*0.01)
-                        #One, zero case
-                        else:
-                            probability *= (0.5*0.99)
-                elif mother in two_genes or father in two_genes:
-                    #Two, two case
-                    if mother in two_genes and father in two_genes:
-                        probability *= (0.01*0.01)
-                    #Two, zero case
-                    else:
-                        probability *= (0.01*0.99)
-                #Zero, zero case
-                else:
-                    probability *= (0.99*0.99)
-            #Parents unknown
-            else:
-                probability *= PROBS["gene"][0]
+            motherProb = (1-PROBS['mutation']) if people[person]['mother'] in two_genes else 0.5 if people[person]['mother'] in one_gene else PROBS['mutation']
+            fatherProb = (1-PROBS['mutation']) if people[person]['father'] in two_genes else 0.5 if people[person]['father'] in one_gene else PROBS['mutation']
 
-            #Trait probability
-            if person in have_trait:
-                probability *= PROBS["trait"][0][True]
+            if personGene == 0:
+                probability *= ((1-motherProb)*(1-fatherProb))
+            elif personGene == 1:
+                probability *= ((1-motherProb)*fatherProb + motherProb*(1-fatherProb))
             else:
-                probability *= PROBS["trait"][0][False]
+                probability *= (motherProb*fatherProb)
+            
+        #Trait probability
+        if person in have_trait:
+            probability *= PROBS["trait"][personGene][True]
+        else:
+            probability *= PROBS["trait"][personGene][False]
         
     return probability
 
