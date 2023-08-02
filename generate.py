@@ -179,9 +179,8 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-
-        for variable in assignment:
-            if assignment[variable] is None:
+        for variable in self.crossword.variables:
+            if variable not in assignment:
                 return False
         return True
 
@@ -194,7 +193,6 @@ class CrosswordCreator():
 
         for variable in assignment:
             if variable is not None:
-
                 #Check if all values are distinct
                 if assignment[variable] in values:
                     return False
@@ -228,8 +226,7 @@ class CrosswordCreator():
                     for word2 in self.domains[overlap[1]]:
                         if word[self.crossword.overlaps[overlap][0]] != word2[self.crossword.overlaps[overlap][1]]:
                             ans[word] += 1
-
-        return sorted(ans)
+        return sorted(ans, key=lambda key: ans[key])
     
 
     def select_unassigned_variable(self, assignment):
@@ -246,9 +243,9 @@ class CrosswordCreator():
                 if var is None:
                     var = variable
                 else:
-                    if self.domains[variable] < self.domains[var]:
+                    if len(self.domains[variable]) < len(self.domains[var]):
                         var = variable
-                    elif self.domains[variable] == self.domains[var]:
+                    elif len(self.domains[variable]) == len(self.domains[var]):
                         degree1, degree2 = 0, 0 
                         for overlap in self.crossword.overlaps:
                             if overlap[0] == var:
@@ -270,7 +267,7 @@ class CrosswordCreator():
         If no assignment is possible, return None.
         """
 
-        if len(assignment) == len(self.crossword.variables):
+        if self.assignment_complete(assignment):
             return assignment
         var = self.select_unassigned_variable(assignment)
         for value in self.order_domain_values(var, assignment):
