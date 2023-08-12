@@ -65,29 +65,28 @@ def load_data(filename):
 
 
 def train_model(evidence, labels):
-    """
-    Given a list of evidence lists and a list of labels, return a
-    fitted k-nearest neighbor model (k=1) trained on the data.
-    """
-    raise NotImplementedError
+
+    model = KNeighborsClassifier(n_neighbors=1)
+    model.fit(evidence,labels)
+    return model
 
 
 def evaluate(labels, predictions):
-    """
-    Given a list of actual labels and a list of predicted labels,
-    return a tuple (sensitivity, specificity).
-
-    Assume each label is either a 1 (positive) or 0 (negative).
-
-    `sensitivity` should be a floating-point value from 0 to 1
-    representing the "true positive rate": the proportion of
-    actual positive labels that were accurately identified.
-
-    `specificity` should be a floating-point value from 0 to 1
-    representing the "true negative rate": the proportion of
-    actual negative labels that were accurately identified.
-    """
-    raise NotImplementedError
+    sumSensivity = 0
+    countSensivity = 0
+    sumSpecificity = 0
+    countSpecificity = 0
+    for index in range(len(predictions)):
+        if labels[index] == 1:
+            countSensivity += 1
+            if predictions[index] == 1:
+                sumSensivity += 1
+        if labels[index] == 0:
+            countSpecificity += 1
+            if predictions[index] == 0:
+                sumSpecificity += 1
+    
+    return (float(sumSensivity/countSensivity), float(sumSpecificity/countSpecificity))
 
 
 if __name__ == "__main__":
