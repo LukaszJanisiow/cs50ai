@@ -58,8 +58,15 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    raise NotImplementedError
-
+    images = []
+    labels = []
+    for categoryNumber in range(NUM_CATEGORIES):
+        for file in os.scandir(os.path.join(data_dir,str(categoryNumber))):
+            im = cv2.imread(file.path)
+            im=cv2.resize(im,(IMG_WIDTH,IMG_HEIGHT))
+            images.append(im)
+            labels.append(NUM_CATEGORIES)
+    return (images,labels)
 
 def get_model():
     """
@@ -67,7 +74,6 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
 
 
 if __name__ == "__main__":
